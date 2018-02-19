@@ -38,21 +38,23 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
   protected final long chunkSizeMask;
   protected final int chunkSizePower;
   protected final ByteBufferGuard guard;
-  
+
   protected ByteBuffer[] buffers;
   protected int curBufIndex = -1;
   protected ByteBuffer curBuf; // redundant for speed: buffers[curBufIndex]
 
   protected boolean isClone = false;
-  
+
   public static ByteBufferIndexInput newInstance(String resourceDescription, ByteBuffer[] buffers, long length, int chunkSizePower, ByteBufferGuard guard) {
     if (buffers.length == 1) {
+      System.out.println("!!!!! singlebufferImpl");
       return new SingleBufferImpl(resourceDescription, buffers[0], length, chunkSizePower, guard);
     } else {
+      System.out.println("!!!!! multibufferImpl");
       return new MultiBufferImpl(resourceDescription, buffers, 0, length, chunkSizePower, guard);
     }
   }
-  
+
   ByteBufferIndexInput(String resourceDescription, ByteBuffer[] buffers, long length, int chunkSizePower, ByteBufferGuard guard) {
     super(resourceDescription);
     this.buffers = buffers;
@@ -60,13 +62,14 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
     this.chunkSizePower = chunkSizePower;
     this.chunkSizeMask = (1L << chunkSizePower) - 1L;
     this.guard = guard;
-    assert chunkSizePower >= 0 && chunkSizePower <= 30;   
+    assert chunkSizePower >= 0 && chunkSizePower <= 30;
     assert (length >>> chunkSizePower) < Integer.MAX_VALUE;
   }
-  
+
   @Override
   public final byte readByte() throws IOException {
     try {
+      //System.out.println("readByte in abastract bytebuffer");
       return guard.getByte(curBuf);
     } catch (BufferUnderflowException e) {
       do {
@@ -86,6 +89,7 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
   @Override
   public final void readBytes(byte[] b, int offset, int len) throws IOException {
     try {
+      //System.out.println("!readBytes in bytebufferindexinput");
       guard.getBytes(curBuf, b, offset, len);
     } catch (BufferUnderflowException e) {
       int curAvail = curBuf.remaining();
@@ -139,7 +143,7 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
       throw new AlreadyClosedException("Already closed: " + this);
     }
   }
-  
+
   @Override
   public long getFilePointer() {
     try {
@@ -170,7 +174,7 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
       throw new AlreadyClosedException("Already closed: " + this);
     }
   }
-  
+
   @Override
   public byte readByte(long pos) throws IOException {
     try {
@@ -182,7 +186,7 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
       throw new AlreadyClosedException("Already closed: " + this);
     }
   }
-  
+
   // used only by random access methods to handle reads across boundaries
   private void setPos(long pos, int bi) throws IOException {
     try {
@@ -252,19 +256,19 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
     } catch(IOException ioe) {
       throw new AssertionError(ioe);
     }
-    
+
     return clone;
   }
-  
+
   /**
    * Creates a slice of this index input, with the given description, offset, and length. The slice is seeked to the beginning.
    */
   @Override
-  public final ByteBufferIndexInput slice(String sliceDescription, long offset, long length) {    
+  public final ByteBufferIndexInput slice(String sliceDescription, long offset, long length) {
     if (offset < 0 || length < 0 || offset+length > this.length) {
       throw new IllegalArgumentException("slice() " + sliceDescription + " out of bounds: offset=" + offset + ",length=" + length + ",fileLength="  + this.length + ": "  + this);
     }
-    
+
     return buildSlice(sliceDescription, offset, length);
   }
 
@@ -276,10 +280,10 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
 
     final ByteBuffer newBuffers[] = buildSlice(buffers, offset, length);
     final int ofs = (int) (offset & chunkSizeMask);
-    
+
     final ByteBufferIndexInput clone = newCloneInstance(getFullSliceDescription(sliceDescription), newBuffers, ofs, length);
     clone.isClone = true;
-    
+
     return clone;
   }
 
@@ -293,26 +297,26 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
       return new MultiBufferImpl(newResourceDescription, newBuffers, offset, length, chunkSizePower, guard);
     }
   }
-  
-  /** Returns a sliced view from a set of already-existing buffers: 
+
+  /** Returns a sliced view from a set of already-existing buffers:
    *  the last buffer's limit() will be correct, but
    *  you must deal with offset separately (the first buffer will not be adjusted) */
   private ByteBuffer[] buildSlice(ByteBuffer[] buffers, long offset, long length) {
     final long sliceEnd = offset + length;
-    
+
     final int startIndex = (int) (offset >>> chunkSizePower);
     final int endIndex = (int) (sliceEnd >>> chunkSizePower);
 
     // we always allocate one more slice, the last one may be a 0 byte one
     final ByteBuffer slices[] = new ByteBuffer[endIndex - startIndex + 1];
-    
+
     for (int i = 0; i < slices.length; i++) {
       slices[i] = buffers[startIndex + i].duplicate();
     }
 
     // set the last buffer's limit for the sliced view.
     slices[slices.length - 1].limit((int) (sliceEnd & chunkSizeMask));
-    
+
     return slices;
   }
 
@@ -320,20 +324,20 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
   public final void close() throws IOException {
     try {
       if (buffers == null) return;
-      
+
       // make local copy, then un-set early
       final ByteBuffer[] bufs = buffers;
       unsetBuffers();
-      
+
       if (isClone) return;
-      
+
       // tell the guard to invalidate and later unmap the bytebuffers (if supported):
       guard.invalidateAndUnmap(bufs);
     } finally {
       unsetBuffers();
     }
   }
-  
+
   /**
    * Called to remove all references to byte buffers, so we can throw AlreadyClosed on NPE.
    */
@@ -342,7 +346,7 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
     curBuf = null;
     curBufIndex = 0;
   }
-  
+
   /** Optimization of ByteBufferIndexInput for when there is only one buffer */
   static final class SingleBufferImpl extends ByteBufferIndexInput {
 
@@ -352,9 +356,9 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
       this.curBuf = buffer;
       buffer.position(0);
     }
-    
+
     // TODO: investigate optimizing readByte() & Co?
-    
+
     @Override
     public void seek(long pos) throws IOException {
       try {
@@ -369,7 +373,7 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
         throw new AlreadyClosedException("Already closed: " + this);
       }
     }
-    
+
     @Override
     public long getFilePointer() {
       try {
@@ -382,6 +386,7 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
     @Override
     public byte readByte(long pos) throws IOException {
       try {
+        //System.out.println("!!! readByte in Single");
         return guard.getByte(curBuf, (int) pos);
       } catch (IllegalArgumentException e) {
         if (pos < 0) {
@@ -397,6 +402,7 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
     @Override
     public short readShort(long pos) throws IOException {
       try {
+        System.out.println("!!! readShort in Single");
         return guard.getShort(curBuf, (int) pos);
       } catch (IllegalArgumentException e) {
         if (pos < 0) {
@@ -412,6 +418,7 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
     @Override
     public int readInt(long pos) throws IOException {
       try {
+        System.out.println("!!! readInt in Single");
         return guard.getInt(curBuf, (int) pos);
       } catch (IllegalArgumentException e) {
         if (pos < 0) {
@@ -427,6 +434,7 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
     @Override
     public long readLong(long pos) throws IOException {
       try {
+        System.out.println("!!! readLong in Single");
         return guard.getLong(curBuf, (int) pos);
       } catch (IllegalArgumentException e) {
         if (pos < 0) {
@@ -439,11 +447,11 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
       }
     }
   }
-  
+
   /** This class adds offset support to ByteBufferIndexInput, which is needed for slices. */
   static final class MultiBufferImpl extends ByteBufferIndexInput {
     private final int offset;
-    
+
     MultiBufferImpl(String resourceDescription, ByteBuffer[] buffers, int offset, long length, int chunkSizePower,
         ByteBufferGuard guard) {
       super(resourceDescription, buffers, length, chunkSizePower, guard);
@@ -454,18 +462,18 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
         throw new AssertionError(ioe);
       }
     }
-    
+
     @Override
     public void seek(long pos) throws IOException {
       assert pos >= 0L;
       super.seek(pos + offset);
     }
-    
+
     @Override
     public long getFilePointer() {
       return super.getFilePointer() - offset;
     }
-    
+
     @Override
     public byte readByte(long pos) throws IOException {
       return super.readByte(pos + offset);

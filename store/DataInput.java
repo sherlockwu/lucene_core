@@ -107,7 +107,7 @@ public abstract class DataInput implements Cloneable {
    * supported.
    * <p>
    * The format is described further in {@link DataOutput#writeVInt(int)}.
-   * 
+   *
    * @see DataOutput#writeVInt(int)
    */
   public int readVInt() throws IOException {
@@ -122,6 +122,7 @@ public abstract class DataInput implements Cloneable {
     }
     return i;
     */
+    //System.out.println("!!! readVInt in DataInput");
     byte b = readByte();
     if (b >= 0) return b;
     int i = b & 0x7F;
@@ -162,7 +163,7 @@ public abstract class DataInput implements Cloneable {
    * supported.
    * <p>
    * The format is described further in {@link DataOutput#writeVInt(int)}.
-   * 
+   *
    * @see DataOutput#writeVLong(long)
    */
   public long readVLong() throws IOException {
@@ -257,8 +258,8 @@ public abstract class DataInput implements Cloneable {
   }
 
   /** Reads a Map&lt;String,String&gt; previously written
-   *  with {@link DataOutput#writeStringStringMap(Map)}. 
-   *  @deprecated Only for reading existing formats. Encode maps with 
+   *  with {@link DataOutput#writeStringStringMap(Map)}.
+   *  @deprecated Only for reading existing formats. Encode maps with
    *  {@link DataOutput#writeMapOfStrings(Map)} instead.
    */
   @Deprecated
@@ -273,10 +274,10 @@ public abstract class DataInput implements Cloneable {
 
     return map;
   }
-  
-  /** 
+
+  /**
    * Reads a Map&lt;String,String&gt; previously written
-   * with {@link DataOutput#writeMapOfStrings(Map)}. 
+   * with {@link DataOutput#writeMapOfStrings(Map)}.
    * @return An immutable map containing the written contents.
    */
   public Map<String,String> readMapOfStrings() throws IOException {
@@ -297,8 +298,8 @@ public abstract class DataInput implements Cloneable {
   }
 
   /** Reads a Set&lt;String&gt; previously written
-   *  with {@link DataOutput#writeStringSet(Set)}. 
-   *  @deprecated Only for reading existing formats. Encode maps with 
+   *  with {@link DataOutput#writeStringSet(Set)}.
+   *  @deprecated Only for reading existing formats. Encode maps with
    *  {@link DataOutput#writeSetOfStrings(Set)} instead. */
   @Deprecated
   public Set<String> readStringSet() throws IOException {
@@ -310,10 +311,10 @@ public abstract class DataInput implements Cloneable {
 
     return set;
   }
-  
-  /** 
+
+  /**
    * Reads a Set&lt;String&gt; previously written
-   * with {@link DataOutput#writeSetOfStrings(Set)}. 
+   * with {@link DataOutput#writeSetOfStrings(Set)}.
    * @return An immutable set containing the written contents.
    */
   public Set<String> readSetOfStrings() throws IOException {

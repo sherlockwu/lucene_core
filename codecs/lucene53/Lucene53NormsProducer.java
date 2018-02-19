@@ -88,6 +88,7 @@ class Lucene53NormsProducer extends NormsProducer {
   }
 
   private void readFields(IndexInput meta, FieldInfos infos) throws IOException {
+    System.out.println("\n\n\n\n readFields\n\n\n\n");
     int fieldNumber = meta.readVInt();
     while (fieldNumber != -1) {
       FieldInfo info = infos.fieldInfo(fieldNumber);
@@ -127,7 +128,7 @@ class Lucene53NormsProducer extends NormsProducer {
     RandomAccessInput slice;
     synchronized (data) {
       switch (entry.bytesPerValue) {
-        case 1: 
+        case 1:
           slice = data.randomAccessSlice(entry.offset, maxDoc);
           return new NumericDocValues() {
             @Override
@@ -139,7 +140,7 @@ class Lucene53NormsProducer extends NormsProducer {
               }
             }
           };
-        case 2: 
+        case 2:
           slice = data.randomAccessSlice(entry.offset, maxDoc * 2L);
           return new NumericDocValues() {
             @Override
@@ -151,7 +152,7 @@ class Lucene53NormsProducer extends NormsProducer {
               }
             }
           };
-        case 4: 
+        case 4:
           slice = data.randomAccessSlice(entry.offset, maxDoc * 4L);
           return new NumericDocValues() {
             @Override
@@ -163,7 +164,7 @@ class Lucene53NormsProducer extends NormsProducer {
               }
             }
           };
-        case 8: 
+        case 8:
           slice = data.randomAccessSlice(entry.offset, maxDoc * 8L);
           return new NumericDocValues() {
             @Override

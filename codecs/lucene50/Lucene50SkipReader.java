@@ -28,22 +28,22 @@ import static org.apache.lucene.codecs.lucene50.Lucene50PostingsFormat.BLOCK_SIZ
 /**
  * Implements the skip list reader for block postings format
  * that stores positions and payloads.
- * 
- * Although this skipper uses MultiLevelSkipListReader as an interface, 
- * its definition of skip position will be a little different. 
  *
- * For example, when skipInterval = blockSize = 3, df = 2*skipInterval = 6, 
- * 
+ * Although this skipper uses MultiLevelSkipListReader as an interface,
+ * its definition of skip position will be a little different.
+ *
+ * For example, when skipInterval = blockSize = 3, df = 2*skipInterval = 6,
+ *
  * 0 1 2 3 4 5
  * d d d d d d    (posting list)
  *     ^     ^    (skip point in MultiLeveSkipWriter)
  *       ^        (skip point in Lucene50SkipWriter)
  *
- * In this case, MultiLevelSkipListReader will use the last document as a skip point, 
- * while Lucene50SkipReader should assume no skip point will comes. 
+ * In this case, MultiLevelSkipListReader will use the last document as a skip point,
+ * while Lucene50SkipReader should assume no skip point will comes.
  *
- * If we use the interface directly in Lucene50SkipReader, it may silly try to read 
- * another skip data after the only skip point is loaded. 
+ * If we use the interface directly in Lucene50SkipReader, it may silly try to read
+ * another skip data after the only skip point is loaded.
  *
  * To illustrate this, we can call skipTo(d[5]), since skip point d[3] has smaller docId,
  * and numSkipped+blockSize== df, the MultiLevelSkipListReader will assume the skip list
@@ -116,7 +116,7 @@ final class Lucene50SkipReader extends MultiLevelSkipListReader {
     }
   }
 
-  /** Returns the doc pointer of the doc to which the last call of 
+  /** Returns the doc pointer of the doc to which the last call of
    * {@link MultiLevelSkipListReader#skipTo(int)} has skipped.  */
   public long getDocPointer() {
     return lastDocPointer;
@@ -157,7 +157,7 @@ final class Lucene50SkipReader extends MultiLevelSkipListReader {
       }
     }
   }
-  
+
   @Override
   protected void setLastSkipData(int level) {
     super.setLastSkipData(level);
@@ -177,6 +177,7 @@ final class Lucene50SkipReader extends MultiLevelSkipListReader {
 
   @Override
   protected int readSkipData(int level, IndexInput skipStream) throws IOException {
+    System.out.println("=== readSkipData " + skipStream);
     int delta = skipStream.readVInt();
     docPointer[level] += skipStream.readVLong();
 

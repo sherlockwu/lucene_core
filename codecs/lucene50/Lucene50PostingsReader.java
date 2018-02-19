@@ -70,12 +70,12 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
     IndexInput docIn = null;
     IndexInput posIn = null;
     IndexInput payIn = null;
-    
+
     // NOTE: these data files are too costly to verify checksum against all the bytes on open,
     // but for now we at least verify proper structure of the checksum footer: which looks
     // for FOOTER_MAGIC + algorithmID. This is cheap and can detect some forms of corruption
     // such as file truncation.
-    
+
     String docName = IndexFileNames.segmentFileName(state.segmentInfo.name, state.segmentSuffix, Lucene50PostingsFormat.DOC_EXTENSION);
     try {
       docIn = state.directory.openInput(docName, state.context);
@@ -140,7 +140,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
       }
     }
     long endTime = System.nanoTime();
-    long duration = (endTime - startTime); 
+    long duration = (endTime - startTime);
     System.out.printf("=== %d readVIntBlock %d %d\n", Thread.currentThread().getId(), duration, num);
   }
 
@@ -193,10 +193,10 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
       termState.skipOffset = -1;
     }
   }
-    
+
   @Override
   public PostingsEnum postings(FieldInfo fieldInfo, BlockTermState termState, PostingsEnum reuse, int flags) throws IOException {
-    
+
     boolean indexHasPositions = fieldInfo.getIndexOptions().compareTo(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS) >= 0;
     boolean indexHasOffsets = fieldInfo.getIndexOptions().compareTo(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS) >= 0;
     boolean indexHasPayloads = fieldInfo.hasPayloads();
@@ -240,7 +240,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
 
   final class BlockDocsEnum extends PostingsEnum {
     private final byte[] encoded;
-    
+
     private final int[] docDeltaBuffer = new int[MAX_DATA_SIZE];
     private final int[] freqBuffer = new int[MAX_DATA_SIZE];
 
@@ -272,10 +272,10 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
     // no skip data for this term):
     private long skipOffset;
 
-    // docID for next skip point, we won't use skipper if 
+    // docID for next skip point, we won't use skipper if
     // target docID is not larger than this
     private int nextSkipDoc;
-    
+
     private boolean needsFreq; // true if the caller actually needs frequencies
     private int singletonDocID; // docid when there is a single pulsed posting, otherwise -1
 
@@ -286,7 +286,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
       indexHasPos = fieldInfo.getIndexOptions().compareTo(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS) >= 0;
       indexHasOffsets = fieldInfo.getIndexOptions().compareTo(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS) >= 0;
       indexHasPayloads = fieldInfo.hasPayloads();
-      encoded = new byte[MAX_ENCODED_SIZE];    
+      encoded = new byte[MAX_ENCODED_SIZE];
     }
 
     public boolean canReuse(IndexInput docIn, FieldInfo fieldInfo) {
@@ -295,7 +295,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
         indexHasPos == (fieldInfo.getIndexOptions().compareTo(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS) >= 0) &&
         indexHasPayloads == fieldInfo.hasPayloads();
     }
-    
+
     public PostingsEnum reset(IntBlockTermState termState, int flags) throws IOException {
       docFreq = termState.docFreq;
       totalTermFreq = indexHasFreq ? termState.totalTermFreq : docFreq;
@@ -322,7 +322,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
       skipped = false;
       return this;
     }
-    
+
     @Override
     public int freq() throws IOException {
       return freq;
@@ -352,7 +352,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
     public int docID() {
       return doc;
     }
-    
+
     private void refillDocs() throws IOException {
       long startTime = System.nanoTime();
       final int left = docFreq - docUpto;
@@ -377,10 +377,10 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
       }
       docBufferUpto = 0;
       long endTime = System.nanoTime();
-      long duration = (endTime - startTime); 
+      long duration = (endTime - startTime);
       //System.out.printf("=== refillDocs %d \n", duration);
       //System.out.printf("=== refillDocs, took %ld ms\n", duration/1000000);
-      
+
     }
 
     @Override
@@ -404,7 +404,8 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
     @Override
     public int advance(int target) throws IOException {
       // TODO: make frq block load lazy/skippable
-      System.out.println("=== Using skip to advance");
+      long startTime = System.nanoTime();
+      System.out.println("=== Advance");
       // current skip docID < docIDs generated from current buffer <= next skip docID
       // we don't need to skip if target is buffered already
       if (docFreq > BLOCK_SIZE && target > nextSkipDoc) {
@@ -426,9 +427,9 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
           skipped = true;
         }
 
-        // always plus one to fix the result, since skip position in Lucene50SkipReader 
+        // always plus one to fix the result, since skip position in Lucene50SkipReader
         // is a little different from MultiLevelSkipListReader
-        final int newDocUpto = skipper.skipTo(target) + 1; 
+        final int newDocUpto = skipper.skipTo(target) + 1;
 
         if (newDocUpto > docUpto) {
           // Skipper moved
@@ -440,7 +441,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
           accum = skipper.getDoc();               // actually, this is just lastSkipEntry
           docIn.seek(skipper.getDocPointer());    // now point to the block we want to search
         }
-        // next time we call advance, this is used to 
+        // next time we call advance, this is used to
         // foresee whether skipper is necessary.
         nextSkipDoc = skipper.getNextSkipDoc();
       }
@@ -465,12 +466,15 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
           return doc = NO_MORE_DOCS;
         }
       }
+      long endTime = System.nanoTime();
+      long duration = (endTime - startTime);
+      System.out.printf("=== advance takes %d \n", duration);
 
       freq = freqBuffer[docBufferUpto];
       docBufferUpto++;
       return doc = accum;
     }
-    
+
     @Override
     public long cost() {
       return docFreq;
@@ -479,7 +483,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
 
 
   final class BlockPostingsEnum extends PostingsEnum {
-    
+
     private final byte[] encoded;
 
     private final int[] docDeltaBuffer = new int[MAX_DATA_SIZE];
@@ -539,7 +543,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
     private int nextSkipDoc;
 
     private int singletonDocID; // docid when there is a single pulsed posting, otherwise -1
-    
+
     public BlockPostingsEnum(FieldInfo fieldInfo) throws IOException {
       this.startDocIn = Lucene50PostingsReader.this.docIn;
       this.docIn = null;
@@ -554,7 +558,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
         indexHasOffsets == (fieldInfo.getIndexOptions().compareTo(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS) >= 0) &&
         indexHasPayloads == fieldInfo.hasPayloads();
     }
-    
+
     public PostingsEnum reset(IntBlockTermState termState) throws IOException {
       docFreq = termState.docFreq;
       docTermStartFP = termState.docStartFP;
@@ -592,7 +596,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
       skipped = false;
       return this;
     }
-    
+
     @Override
     public int freq() throws IOException {
       return freq;
@@ -619,7 +623,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
       }
       docBufferUpto = 0;
     }
-    
+
     private void refillPositions() throws IOException {
       if (posIn.getFilePointer() == lastPosBlockFP) {
         final int count = (int) (totalTermFreq % BLOCK_SIZE);
@@ -668,7 +672,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
       position = 0;
       return doc;
     }
-    
+
     @Override
     public int advance(int target) throws IOException {
       // TODO: make frq block load lazy/skippable
@@ -691,7 +695,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
           skipped = true;
         }
 
-        final int newDocUpto = skipper.skipTo(target) + 1; 
+        final int newDocUpto = skipper.skipTo(target) + 1;
 
         if (newDocUpto > docUpto) {
           // Skipper moved
@@ -765,7 +769,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
     public int nextPosition() throws IOException {
 
       assert posPendingCount > 0;
-
+      System.out.println("=== nextPosition with "+posIn);
       if (posPendingFP != -1) {
         posIn.seek(posPendingFP);
         posPendingFP = -1;
@@ -792,17 +796,17 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
     public int startOffset() {
       return -1;
     }
-  
+
     @Override
     public int endOffset() {
       return -1;
     }
-  
+
     @Override
     public BytesRef getPayload() {
       return null;
     }
-    
+
     @Override
     public long cost() {
       return docFreq;
@@ -811,7 +815,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
 
   // Also handles payloads + offsets
   final class EverythingEnum extends PostingsEnum {
-    
+
     private final byte[] encoded;
 
     private final int[] docDeltaBuffer = new int[MAX_DATA_SIZE];
@@ -887,11 +891,11 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
     private long skipOffset;
 
     private int nextSkipDoc;
-    
+
     private boolean needsOffsets; // true if we actually need offsets
     private boolean needsPayloads; // true if we actually need payloads
     private int singletonDocID; // docid when there is a single pulsed posting, otherwise -1
-    
+
     public EverythingEnum(FieldInfo fieldInfo) throws IOException {
       this.startDocIn = Lucene50PostingsReader.this.docIn;
       this.docIn = null;
@@ -926,7 +930,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
         indexHasOffsets == (fieldInfo.getIndexOptions().compareTo(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS) >= 0) &&
         indexHasPayloads == fieldInfo.hasPayloads();
     }
-    
+
     public EverythingEnum reset(IntBlockTermState termState, int flags) throws IOException {
       docFreq = termState.docFreq;
       docTermStartFP = termState.docStartFP;
@@ -968,7 +972,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
       skipped = false;
       return this;
     }
-    
+
     @Override
     public int freq() throws IOException {
       return freq;
@@ -994,7 +998,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
       }
       docBufferUpto = 0;
     }
-    
+
     private void refillPositions() throws IOException {
       if (posIn.getFilePointer() == lastPosBlockFP) {
         final int count = (int) (totalTermFreq % BLOCK_SIZE);
@@ -1084,7 +1088,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
       lastStartOffset = 0;
       return doc;
     }
-    
+
     @Override
     public int advance(int target) throws IOException {
       // TODO: make frq block load lazy/skippable
@@ -1107,7 +1111,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
           skipped = true;
         }
 
-        final int newDocUpto = skipper.skipTo(target) + 1; 
+        final int newDocUpto = skipper.skipTo(target) + 1;
 
         if (newDocUpto > docUpto) {
           // Skipper moved
@@ -1213,7 +1217,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
     @Override
     public int nextPosition() throws IOException {
       assert posPendingCount > 0;
-      
+
       if (posPendingFP != -1) {
         posIn.seek(posPendingFP);
         posPendingFP = -1;
@@ -1261,12 +1265,12 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
     public int startOffset() {
       return startOffset;
     }
-  
+
     @Override
     public int endOffset() {
       return endOffset;
     }
-  
+
     @Override
     public BytesRef getPayload() {
       if (payloadLength == 0) {
@@ -1275,7 +1279,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
         return payload;
       }
     }
-    
+
     @Override
     public long cost() {
       return docFreq;
