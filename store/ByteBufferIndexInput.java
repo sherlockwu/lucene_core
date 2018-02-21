@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
+
 /**
  * Base IndexInput implementation that uses an array
  * of ByteBuffers to represent a file.
@@ -47,10 +48,8 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
 
   public static ByteBufferIndexInput newInstance(String resourceDescription, ByteBuffer[] buffers, long length, int chunkSizePower, ByteBufferGuard guard) {
     if (buffers.length == 1) {
-      System.out.println("!!!!! singlebufferImpl");
       return new SingleBufferImpl(resourceDescription, buffers[0], length, chunkSizePower, guard);
     } else {
-      System.out.println("!!!!! multibufferImpl");
       return new MultiBufferImpl(resourceDescription, buffers, 0, length, chunkSizePower, guard);
     }
   }
@@ -68,8 +67,8 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
 
   @Override
   public final byte readByte() throws IOException {
+
     try {
-      //System.out.println("readByte in abastract bytebuffer");
       return guard.getByte(curBuf);
     } catch (BufferUnderflowException e) {
       do {
@@ -83,13 +82,12 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
       return guard.getByte(curBuf);
     } catch (NullPointerException npe) {
       throw new AlreadyClosedException("Already closed: " + this);
-    }
+    } 
   }
 
   @Override
   public final void readBytes(byte[] b, int offset, int len) throws IOException {
     try {
-      //System.out.println("!readBytes in bytebufferindexinput");
       guard.getBytes(curBuf, b, offset, len);
     } catch (BufferUnderflowException e) {
       int curAvail = curBuf.remaining();
@@ -184,7 +182,7 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
       throw new EOFException("seek past EOF: " + this);
     } catch (NullPointerException npe) {
       throw new AlreadyClosedException("Already closed: " + this);
-    }
+    } 
   }
 
   // used only by random access methods to handle reads across boundaries
@@ -386,7 +384,7 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
     @Override
     public byte readByte(long pos) throws IOException {
       try {
-        //System.out.println("!!! readByte in Single");
+        //System.out.println("!!! readByte in Single"); // TODO
         return guard.getByte(curBuf, (int) pos);
       } catch (IllegalArgumentException e) {
         if (pos < 0) {
@@ -402,7 +400,6 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
     @Override
     public short readShort(long pos) throws IOException {
       try {
-        System.out.println("!!! readShort in Single");
         return guard.getShort(curBuf, (int) pos);
       } catch (IllegalArgumentException e) {
         if (pos < 0) {
@@ -418,7 +415,7 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
     @Override
     public int readInt(long pos) throws IOException {
       try {
-        System.out.println("!!! readInt in Single");
+        //System.out.println("!!! readInt in Single");
         return guard.getInt(curBuf, (int) pos);
       } catch (IllegalArgumentException e) {
         if (pos < 0) {
@@ -434,7 +431,7 @@ abstract class ByteBufferIndexInput extends IndexInput implements RandomAccessIn
     @Override
     public long readLong(long pos) throws IOException {
       try {
-        System.out.println("!!! readLong in Single");
+        //System.out.println("!!! readLong in Single");
         return guard.getLong(curBuf, (int) pos);
       } catch (IllegalArgumentException e) {
         if (pos < 0) {

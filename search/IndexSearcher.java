@@ -201,7 +201,6 @@ public class IndexSearcher {
   /** Creates a searcher searching the provided index. */
   public IndexSearcher(IndexReader r) {
     this(r, null);
-    System.out.println("=== New Searcher");
   }
 
   /** Runs searches for each segment separately, using the
@@ -464,7 +463,6 @@ public class IndexSearcher {
     {
         Thread.currentThread().interrupt();
     }
-    System.out.println("=== indexsearcher.search()");
     return searchAfter(null, query, n);
   }
 

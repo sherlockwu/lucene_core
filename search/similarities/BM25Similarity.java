@@ -240,7 +240,6 @@ public class BM25Similarity extends Similarity {
     @Override
     public float score(int doc, float freq) {
       // if there are no norms, we act as if b=0
-      System.out.println("!!!!!! score here with " + norms);
       float norm = norms == null ? k1 : cache[(byte)norms.get(doc) & 0xFF];
       return weightValue * freq / (freq + norm);
     }

@@ -227,7 +227,6 @@ public abstract class MultiLevelSkipListReader implements Closeable {
     for (int i = numberOfSkipLevels - 1; i > 0; i--) {
       // the length of the current level
       long length = skipStream[0].readVLong();
-      
       // the start pointer of the current level
       skipPointer[i] = skipStream[0].getFilePointer();
       if (toBuffer > 0) {

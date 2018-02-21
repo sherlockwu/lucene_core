@@ -50,7 +50,7 @@ final class ExactPhraseScorer extends Scorer {
                     Similarity.SimScorer docScorer, boolean needsScores,
                     float matchCost) throws IOException {
     super(weight);
-    System.out.println("=== ExactPhraseScorer");
+    //System.out.println("=== ExactPhraseScorer");
     this.docScorer = docScorer;
     this.needsScores = needsScores;
 
@@ -103,7 +103,6 @@ final class ExactPhraseScorer extends Scorer {
 
   @Override
   public float score() {
-    System.out.println("=== score with " + docScorer);
     return docScorer.score(docID(), freq);
   }
 

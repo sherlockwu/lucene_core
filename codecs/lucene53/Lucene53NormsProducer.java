@@ -88,7 +88,7 @@ class Lucene53NormsProducer extends NormsProducer {
   }
 
   private void readFields(IndexInput meta, FieldInfos infos) throws IOException {
-    System.out.println("\n\n\n\n readFields\n\n\n\n");
+    //System.out.println("\n\n\n\n readFields\n\n\n\n");
     int fieldNumber = meta.readVInt();
     while (fieldNumber != -1) {
       FieldInfo info = infos.fieldInfo(fieldNumber);

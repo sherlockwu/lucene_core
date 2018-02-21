@@ -19,6 +19,7 @@ package org.apache.lucene.store;
 
 import java.io.EOFException;
 import java.io.IOException;
+import org.apache.lucene.util.Constants;
 
 /** Base implementation class for buffered {@link IndexInput}. */
 public abstract class BufferedIndexInput extends IndexInput implements RandomAccessInput {
@@ -50,6 +51,8 @@ public abstract class BufferedIndexInput extends IndexInput implements RandomAcc
 
   @Override
   public final byte readByte() throws IOException {
+    //if (Constants.DEBUG)
+    //  System.out.println("!!! readByte in BufferedIndexInput"); 
     if (bufferPosition >= bufferLength)
       refill();
     return buffer[bufferPosition++];
@@ -118,6 +121,7 @@ public abstract class BufferedIndexInput extends IndexInput implements RandomAcc
 
   @Override
   public final void readBytes(byte[] b, int offset, int len, boolean useBuffer) throws IOException {
+    //System.out.println("=== readBytes in BufferedIndexInput"); 
     int available = bufferLength - bufferPosition;
     if(len <= available){
       // the buffer contains enough data to satisfy this request
@@ -260,6 +264,8 @@ public abstract class BufferedIndexInput extends IndexInput implements RandomAcc
   
   @Override
   public final byte readByte(long pos) throws IOException {
+    //if (Constants.DEBUG)
+    //  System.out.println("!!! readByte in BufferedIndexInput with pos"); 
     long index = pos - bufferStart;
     if (index < 0 || index >= bufferLength) {
       bufferStart = pos;

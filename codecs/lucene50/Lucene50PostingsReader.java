@@ -123,7 +123,6 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
    */
   static void readVIntBlock(IndexInput docIn, int[] docBuffer,
       int[] freqBuffer, int num, boolean indexHasFreq) throws IOException {
-    long startTime = System.nanoTime();
     if (indexHasFreq) {
       for(int i=0;i<num;i++) {
         final int code = docIn.readVInt();
@@ -139,9 +138,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
         docBuffer[i] = docIn.readVInt();
       }
     }
-    long endTime = System.nanoTime();
-    long duration = (endTime - startTime);
-    System.out.printf("=== %d readVIntBlock %d %d\n", Thread.currentThread().getId(), duration, num);
+    //System.out.printf("=== %d readVIntBlock %d %d\n", Thread.currentThread().getId(), duration, num);
   }
 
   @Override
@@ -354,7 +351,6 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
     }
 
     private void refillDocs() throws IOException {
-      long startTime = System.nanoTime();
       final int left = docFreq - docUpto;
       assert left > 0;
 
@@ -376,8 +372,6 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
         readVIntBlock(docIn, docDeltaBuffer, freqBuffer, left, indexHasFreq);
       }
       docBufferUpto = 0;
-      long endTime = System.nanoTime();
-      long duration = (endTime - startTime);
       //System.out.printf("=== refillDocs %d \n", duration);
       //System.out.printf("=== refillDocs, took %ld ms\n", duration/1000000);
 
@@ -404,8 +398,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
     @Override
     public int advance(int target) throws IOException {
       // TODO: make frq block load lazy/skippable
-      long startTime = System.nanoTime();
-      System.out.println("=== Advance");
+      //System.out.println("=== Advance");
       // current skip docID < docIDs generated from current buffer <= next skip docID
       // we don't need to skip if target is buffered already
       if (docFreq > BLOCK_SIZE && target > nextSkipDoc) {
@@ -466,9 +459,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
           return doc = NO_MORE_DOCS;
         }
       }
-      long endTime = System.nanoTime();
-      long duration = (endTime - startTime);
-      System.out.printf("=== advance takes %d \n", duration);
+      //System.out.printf("=== advance takes %d \n", duration);
 
       freq = freqBuffer[docBufferUpto];
       docBufferUpto++;
@@ -769,7 +760,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
     public int nextPosition() throws IOException {
 
       assert posPendingCount > 0;
-      System.out.println("=== nextPosition with "+posIn);
+      //System.out.println("=== nextPosition with "+posIn);
       if (posPendingFP != -1) {
         posIn.seek(posPendingFP);
         posPendingFP = -1;
@@ -1216,6 +1207,7 @@ public final class Lucene50PostingsReader extends PostingsReaderBase {
 
     @Override
     public int nextPosition() throws IOException {
+      //System.out.println("=== Next Position in EverythingEnum");
       assert posPendingCount > 0;
 
       if (posPendingFP != -1) {

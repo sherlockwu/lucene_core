@@ -534,15 +534,30 @@ public final class CompressingStoredFieldsReader extends StoredFieldsReader {
 
           @Override
           public byte readByte() throws IOException {
+            /*long startTime;
+            if (Constants.DEBUG) {
+              startTime = System.nanoTime();
+            }*/
+            //System.out.println("=== readByte in CompressingStoredFieldsReader with " + fieldsStream);
             if (bytes.length == 0) {
               fillBuffer();
             }
             --bytes.length;
+        
+            /*if (Constants.DEBUG) {
+              long endTime = System.nanoTime();
+              long duration = (endTime - startTime);
+              System.out.printf("=== readByte in ByteBufferIndexInput %d \n", duration);
+            }*/
             return bytes.bytes[bytes.offset++];
           }
 
           @Override
           public void readBytes(byte[] b, int offset, int len) throws IOException {
+            //TODO
+            //long startTime = System.nanoTime();
+            //System.out.println("=== readBytes in CompressingStoredFieldsReader with " + fieldsStream);
+            //System.out.println("=== readBytes in CompressingStoredFieldsReader");
             while (len > bytes.length) {
               System.arraycopy(bytes.bytes, bytes.offset, b, offset, bytes.length);
               len -= bytes.length;
@@ -552,6 +567,10 @@ public final class CompressingStoredFieldsReader extends StoredFieldsReader {
             System.arraycopy(bytes.bytes, bytes.offset, b, offset, len);
             bytes.offset += len;
             bytes.length -= len;
+            
+            //long endTime = System.nanoTime();
+            //long duration = (endTime - startTime);
+            //System.out.printf("=== refillDocs %d \n", duration);
           }
 
         };

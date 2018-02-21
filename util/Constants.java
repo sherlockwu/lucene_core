@@ -27,6 +27,8 @@ import java.util.StringTokenizer;
 public final class Constants {
   private Constants() {}  // can't construct
 
+  /** For DEBUG */
+  public static final boolean DEBUG = false;
   /** JVM vendor info. */
   public static final String JVM_VENDOR = System.getProperty("java.vm.vendor");
   public static final String JVM_VERSION = System.getProperty("java.vm.version");

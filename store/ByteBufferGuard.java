@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.lucene.util.Constants;
+
 /**
  * A guard that is created for every {@link ByteBufferIndexInput} that tries on best effort
  * to reject any access to the {@link ByteBuffer} behind, once it is unmapped. A single instance
@@ -57,11 +59,17 @@ final class ByteBufferGuard {
     this.resourceDescription = resourceDescription;
     this.cleaner = cleaner;
   }
+  /*Kan For Print
+  */
+
+  private long threshold = 50000;
+  private String Log = "";
 
   /**
    * Invalidates this guard and unmaps (if supported).
    */
   public void invalidateAndUnmap(ByteBuffer... bufs) throws IOException {
+    System.out.printf("==== Get to the end of Guard with %d size buffer \n", Log.length());
     if (cleaner != null) {
       invalidated = true;
       // This call should hopefully flush any CPU caches and as a result make
@@ -89,50 +97,174 @@ final class ByteBufferGuard {
   }
 
   public void getBytes(ByteBuffer receiver, byte[] dst, int offset, int length) {
+    long startTime;
+    if (Constants.DEBUG) {
+      startTime = System.nanoTime();
+    }
     ensureValid();
     receiver.get(dst, offset, length);
+    if (Constants.DEBUG) {
+      long endTime = System.nanoTime();
+      long duration = (endTime - startTime);
+      if (duration > threshold)
+        Log += "=== getBytes: " +  duration + "\n";
+        System.out.printf("=== getBytes: %d \n", duration);
+    }
   }
 
   public byte getByte(ByteBuffer receiver) {
+    long startTime;
+    if (Constants.DEBUG) {
+      startTime = System.nanoTime();
+    }
     ensureValid();
-    //System.out.println("=== getByte in guard");
-    return receiver.get();
+    //return receiver.get();
+    try {
+      return receiver.get();
+    } finally {
+    if (Constants.DEBUG) {
+      long endTime = System.nanoTime();
+      long duration = (endTime - startTime);
+      if (duration > threshold)
+        Log += "=== getByte: " +  duration + "\n";
+        System.out.printf("=== getByte: %d \n", duration);
+    }
+    }
   }
 
   public short getShort(ByteBuffer receiver) {
+    long startTime;
+    if (Constants.DEBUG) {
+      startTime = System.nanoTime();
+    }
     ensureValid();
-    return receiver.getShort();
+    try {
+      return receiver.getShort();
+    } finally {
+    if (Constants.DEBUG) {
+      long endTime = System.nanoTime();
+      long duration = (endTime - startTime);
+      if (duration > threshold)
+        Log += "=== getShort: " +  duration + "\n";
+        System.out.printf("=== getShort: %d \n", duration);
+    }
+    }
   }
 
   public int getInt(ByteBuffer receiver) {
+    long startTime;
+    if (Constants.DEBUG) {
+      startTime = System.nanoTime();
+    }
     ensureValid();
-    return receiver.getInt();
+    try {
+      return receiver.getInt();
+    } finally {
+    if (Constants.DEBUG) {
+      long endTime = System.nanoTime();
+      long duration = (endTime - startTime);
+      if (duration > threshold)
+        Log += "=== getInt: " +  duration + "\n";
+        System.out.printf("=== getInt: %d \n", duration);
+    }
+    }
   }
 
   public long getLong(ByteBuffer receiver) {
+    long startTime;
+    if (Constants.DEBUG) {
+      startTime = System.nanoTime();
+    }
     ensureValid();
-    return receiver.getLong();
+    try {
+      return receiver.getLong();
+    } finally {
+    if (Constants.DEBUG) {
+      long endTime = System.nanoTime();
+      long duration = (endTime - startTime);
+      if (duration > threshold)
+        Log += "=== getLong: " +  duration + "\n";
+        System.out.printf("=== getLong: %d \n", duration);
+    }
+    }
   }
 
   public byte getByte(ByteBuffer receiver, int pos) {
+    long startTime;
+    if (Constants.DEBUG) {
+      startTime = System.nanoTime();
+    }
     ensureValid();
-    //System.out.println("=== getByte in guard");
-    return receiver.get(pos);
+    //return receiver.get(pos);
+    try {
+      return receiver.get(pos);
+    } finally {
+    if (Constants.DEBUG) {
+      long endTime = System.nanoTime();
+      long duration = (endTime - startTime);
+      if (duration > threshold)
+        Log += "=== getByte(pos): " +  duration + "\n";
+        System.out.printf("=== getByte(pos): %d \n", duration);
+    }
+      
+    }
   }
 
   public short getShort(ByteBuffer receiver, int pos) {
+    long startTime;
+    if (Constants.DEBUG) {
+      startTime = System.nanoTime();
+    }
     ensureValid();
-    return receiver.getShort(pos);
+    try{
+      return receiver.getShort(pos);
+    } finally {
+    if (Constants.DEBUG) {
+      long endTime = System.nanoTime();
+      long duration = (endTime - startTime);
+      if (duration > threshold)
+        Log += "=== getShort(pos): " +  duration + "\n";
+        System.out.printf("=== getShort(pos): %d \n", duration);
+    }
+    }
   }
 
   public int getInt(ByteBuffer receiver, int pos) {
+    long startTime;
+    if (Constants.DEBUG) {
+      startTime = System.nanoTime();
+    }
     ensureValid();
-    return receiver.getInt(pos);
+    try {
+      return receiver.getInt(pos);
+    } finally {
+    if (Constants.DEBUG) {
+      long endTime = System.nanoTime();
+      long duration = (endTime - startTime);
+      if (duration > threshold)
+        Log += "=== getInt(pos): " +  duration + "\n";
+        System.out.printf("=== getInt(pos): %d \n", duration);
+    }
+    }
   }
 
   public long getLong(ByteBuffer receiver, int pos) {
+    long startTime;
+    if (Constants.DEBUG) {
+      startTime = System.nanoTime();
+    }
     ensureValid();
-    return receiver.getLong(pos);
+    try {
+      return receiver.getLong(pos);
+    } finally {
+    if (Constants.DEBUG) {
+      long endTime = System.nanoTime();
+      long duration = (endTime - startTime);
+      if (duration > threshold)
+        Log += "=== getLong(pos): " +  duration + "\n";
+        System.out.printf("=== getLong(pos): %d \n", duration);
+    }
+    }
   }
 
 }

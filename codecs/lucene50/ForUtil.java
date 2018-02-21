@@ -199,7 +199,7 @@ final class ForUtil {
     in.readBytes(encoded, 0, encodedSize);
     long endTime = System.nanoTime();
     long duration = (endTime - startTime); 
-    System.out.printf("=== %d readBlock %d %d\n", Thread.currentThread().getId(), duration, encodedSize);
+    //System.out.printf("=== %d readBlock %d %d\n", Thread.currentThread().getId(), duration, encodedSize);
 
     final PackedInts.Decoder decoder = decoders[numBits];
     final int iters = iterations[numBits];
